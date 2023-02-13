@@ -1,5 +1,4 @@
 /* 
-this is NOT an edit i made
 Ethan Hebert and Karina Chang
 2-24-23
 CSC-330-002
@@ -52,6 +51,7 @@ at(toad, treasury).
 at(toilet, lavatory).
 at(sink, lavatory).
 at(medicine_cabinet, lavatory).
+at(mushroom, lavatory).
 at(daisy, garden).
 at(flowers, garden).
 at(fountain, garden).
@@ -121,9 +121,26 @@ w :- go(w).
 
 /* This rule tells how to move in a given direction. */
 
+/* Once you enter dungeon, you cannot exit. */
 go(n) :-
         i_am_at(dungeon),
         write('Bowser uses his big dragon tail to block your exit!!!'),
+        !, nl.
+
+/* Can only enter dungeon if you have a mushroom to reach pipe. */
+go(s) :-
+        i_am_at(tower),
+        holding(mushroom),
+        write('Shimmying down the pipe...'), nl, nl,
+        path(tower, s, dungeon),
+        retract(i_am_at(tower)),
+        assert(i_am_at(dungeon)),
+        !, look.
+
+go(s) :-
+        i_am_at(tower),
+        not(holding(mushroom)),
+        write('I am not tall enough to enter this pipe...'),
         !, nl.
 
 go(Direction) :-
@@ -208,5 +225,9 @@ describe(tower) :- write('You are in the tower.'), nl.
 describe(garden) :- write('You are in the garden.'), nl.
 describe(racetrack) :- write('You are currently in 12th place on the racetrack.'), nl.
 describe(lavatory) :- write('You are in the lavatory. What\'s that smell???'), nl.
-describe(dungeon) :- write('BIG BOWSER SPEECH'), nl.
+describe(dungeon) :- write('You are in Bowser''s Dungeon.'), nl, nl,
+        write('Bowser guards a gate to the east.'), nl,
+        write('MWAHAHA... WELL MARIO, IT SEEMS YOU HAVE FOUND MY SECRET
+DUNGEON, POSSIBLY IN SEARCH OF YOUR LOST PEACH? WELL YOU''LL
+HAVE TO GO THROUGH ME FIRST!!!'), nl.
 describe(jail) :- write('You are in the jail. You found Peach!'), nl.
