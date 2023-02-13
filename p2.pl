@@ -6,12 +6,12 @@ Winter 2023
 Project #2 - Super Mario Pro(log)
 */
 
-:- dynamic i_am_at/1, at/2, holding/1.
+:- dynamic i_am_at/1, at/2, holding/1, dial/2.
 :- retractall(at(_, _)), retractall(i_am_at(_)), retractall(alive(_)).
 
 i_am_at(ballroom).
 
-/* First Area - Peach's Castle */
+/* Paths between rooms */
 path(ballroom, n, treasury).
 path(treasury, s, ballroom).
 
@@ -28,13 +28,6 @@ path(garden, e, tower).
 path(tower, w, garden).
 
 path(tower, s, dungeon).
-path(dungeon, e, jail).
-path(jail, w, dungeon).
-
-/* Second Area - Bowser's Castle */
-path(tower, s, dungeon).
-path(dungeon, e, jail).
-path(jail, w, dungeon).
 
 /* Items in Rooms */
 at(table, ballroom).
@@ -51,24 +44,75 @@ at(toad, treasury).
 at(toilet, lavatory).
 at(sink, lavatory).
 at(medicine_cabinet, lavatory).
-at(mushroom, lavatory).
 at(daisy, garden).
 at(flowers, garden).
 at(fountain, garden).
 at(pipe, tower).
+at(bowser, dungeon).
+at(lava, dungeon).
+at(dry_bones, dungeon).
+at(peach, jail).
+at(pillow, jail).
+at(snacks, jail).
+at(nintendo_switch, jail).
+at(legally_blonde_blu_ray, jail).
 
+/* Current Dial Numbers for Gate */
+dial(a,0).
+dial(b,0).
+dial(c,0).
 
 /* These rules describe how to pick up an object. */
 
 take(waluigi) :-
+        i_am_at(Place),
+        at(waluigi, Place),
         write('Waluigi blushes and politely declines. With a soft
 smile, he replies, ''Sorry... I''m already taken.'''),
         !, nl.
 
 take(daisy) :-
+        i_am_at(Place),
+        at(daisy, Place),
         write('Daisy screams!!!
 ''UGH!!! DON''T TOUCH ME!!!
 Anyways... have you seen Peach anywhere?'''),
+        !, nl.
+
+take(peach) :-
+        i_am_at(jail),
+        at(peach, jail),
+        write('You saved me, Mario!'),
+        !, nl, win.
+
+take(medicine_cabinet) :-
+        i_am_at(Place),
+        at(medicine_cabinet, Place),
+        write('Man, this medicine cabinet is screwed in so tight. I can''t grab it!'),
+        !, nl.
+
+take(gate) :-
+        i_am_at(Place),
+        at(gate, Place),
+        write('Bro. You cannot take a whole gate.'),
+        !, nl.
+
+take(lava) :-
+        i_am_at(Place),
+        at(lava, Place),
+        write('You burned to a crisp.'),
+        !, nl, die.
+
+take(pipe) :-
+        i_am_at(Place),
+        at(pipe, Place),
+        write('This pipe is glued to the floor!'),
+        !, nl.
+
+take(bowser) :-
+        i_am_at(Place),
+        at(bowser, Place),
+        write('Don''t take me. Take on me. (a-ha)'),
         !, nl.
 
 take(X) :-
@@ -108,6 +152,158 @@ drop(_) :-
         nl.
 
 
+/* These rules define how to punch! */
+punch(medicine_cabinet) :-
+        i_am_at(Place),
+        at(medicine_cabinet, Place),
+        retract(at(medicine_cabinet, Place)),
+        assert(at(mushroom,lavatory)),
+        write('You destroyed the medicine_cabinet.'), nl, nl,
+        write('Hmm... there was something in there.'),
+        !, nl.
+
+/* punching Bowser reveals the gate and riddle */
+punch(bowser) :-
+        i_am_at(Place),
+        at(bowser, Place),
+        not(at(gate,dungeon)),
+        write('THAT FELT LIKE A KITTEN PUNCH!!!'), nl, nl,
+        write('Sorry. Anyways, I''m not here for a fist fight.
+My son Ludwig has introduced me to the fine art of classical
+music. I am more interested in your intellectual capacities than
+your physical abilities. So, behind this gate is your lovely Peach.
+To retrieve her, you must solve my riddle and input the answer into
+the combination lock on the gate. Here it goes!'), nl, nl,
+        write('What is the area code of my favroite US city (Ruston, LA)?'), nl, nl,
+        write('PS... you have a new ''unlock.'' ability!'), 
+        assert(at(gate,dungeon)),
+        !, nl.
+
+/* if you already punched Bowser, just show riddle. */
+punch(bowser) :-
+        i_am_at(Place),
+        at(bowser, Place),
+        at(gate,dungeon),
+        write('You must''ve forgotten my riddle! Here it is.'), nl, nl,
+        write('What is the area code of my favroite US city (Ruston, LA)?'),
+        !, nl.
+
+punch(peach) :-
+        i_am_at(jail),
+        at(peach, jail),
+        write('Really???'),
+        !, nl, die.
+
+punch(mushroom) :-
+        i_am_at(Place),
+        at(mushroom, Place),
+        write('You remain small eternally.'), !, nl,
+        die.
+
+punch(lava) :-
+        i_am_at(Place),
+        at(lava, Place),
+        write('You burned to a crisp.'),
+        !, nl, die.
+
+punch(pipe) :-
+        i_am_at(Place),
+        at(pipe, Place),
+        write('Ouchie! That''a hurt''a me fingie!'),
+        !, nl.
+
+punch(gate) :-
+        i_am_at(Place),
+        at(gate, Place),
+        write('Ouchie! That''a hurt''a me fingie!'),
+        !, nl.
+
+punch(toilet) :-
+        write('My hands stink. Gross.'),
+        i_am_at(Place),
+        at(toilet, Place),
+        retract(at(toilet, Place)),
+        !, nl.
+
+punch(X) :-
+        i_am_at(Place),
+        at(X, Place),
+        retract(at(X, Place)),
+        write('You destroyed the '),
+        write(X),
+        write('.'),
+        !, nl.
+
+punch(_) :-
+        write('I don''t see it here.'),
+        nl.
+
+/* Unlock displays the gate dial and tests if it = 318 */
+
+unlock :-
+        i_am_at(dungeon),
+        at(gate, dungeon),
+        dial(a,3),
+        dial(b,1),
+        dial(c,8),
+        write('
+|-------------------------------------------------------|
+  To increment or decrement a dial value, call inc(a).
+  or dec(a). with the dial you wish to move (a, b, c).
+|-------------------------------------------------------|'), write('
+                  | [3] | [1] | [8] |'), write('
+                  |  a  |  b  |  c  |'), write('
+                |---------------------|'), write('
+                    ACCESS  GRANTED    '), write('
+                |---------------------|'), nl, nl,
+        retract(i_am_at(dungeon)),
+        assert(i_am_at(jail)),
+        look, !, nl.
+
+unlock :-
+        i_am_at(dungeon),
+        at(gate, dungeon),
+        dial(a,A),
+        dial(b,B),
+        dial(c,C),
+        write('
+|-------------------------------------------------------|
+  To increment or decrement a dial value, call inc(a).
+  or dec(a). with the dial you wish to move (a, b, c).
+|-------------------------------------------------------|'), write('
+                  | ['),write(A),write('] | ['),write(B),write('] | ['),write(C),write('] |'), write('
+                  |  a  |  b  |  c  |'), write('
+                |---------------------|'), write('
+                    ACCESS   DENIED    '), write('
+                |---------------------|'), !, nl.
+
+unlock :-
+        write('What are you doing, silly???'), !, nl.
+
+
+/* Increment and Decrement to move the gate dials */
+inc(X) :-
+        i_am_at(dungeon),
+        at(gate, dungeon),
+        retract(dial(X,N)),
+        N1 is (N+1) mod 10,
+        assert(dial(X,N1)),
+        !, unlock.
+
+inc(_) :-
+        write('What are you doing, silly???'), !, nl.
+
+dec(X) :-
+        i_am_at(dungeon),
+        at(gate, dungeon),
+        retract(dial(X,N)),
+        N1 is (N-1) mod 10,
+        assert(dial(X,N1)),
+        !, unlock.
+
+dec(_) :-
+        write('What are you doing, silly???'), !, nl.
+
 /* These rules define the direction letters as calls to go/1. */
 
 n :- go(n).
@@ -117,6 +313,11 @@ s :- go(s).
 e :- go(e).
 
 w :- go(w).
+
+/* CHEAT CODEEEEE */
+dung :-
+        retract(i_am_at(_)),
+        assert(i_am_at(dungeon)).
 
 
 /* This rule tells how to move in a given direction. */
@@ -179,35 +380,54 @@ notice_objects_at(_).
 /* This rule tells how to die. */
 
 die :-
-        finish.
+        write('
+  _|_|_|    _|_|    _|      _|  _|_|_|_|
+_|        _|    _|  _|_|  _|_|  _|      
+_|  _|_|  _|_|_|_|  _|  _|  _|  _|_|_|  
+_|    _|  _|    _|  _|      _|  _|      
+  _|_|_|  _|    _|  _|      _|  _|_|_|_|  
 
+  _|_|    _|      _|  _|_|_|_|  _|_|_|    
+_|    _|  _|      _|  _|        _|    _|  
+_|    _|  _|      _|  _|_|_|    _|_|_|    
+_|    _|    _|  _|    _|        _|    _|  
+  _|_|        _|      _|_|_|_|  _|    _|         
+        '),
+        halt.
 
-/* Under UNIX, the "halt." command quits Prolog but does not
-   remove the output window. On a PC, however, the window
-   disappears before the final output can be seen. Hence this
-   routine requests the user to perform the final "halt." */
+/* Finding peach wins the game! */
+win :-
+        write('
+  _|      _|    _|_|    _|    _|  
+    _|  _|    _|    _|  _|    _|  
+      _|      _|    _|  _|    _|  
+      _|      _|    _|  _|    _|  
+      _|        _|_|      _|_|   
 
-finish :-
-        nl,
-        write('The game is over. Please enter the "halt." command.'),
-        nl.
-
+_|          _|  _|_|_|  _|      _|
+_|          _|    _|    _|_|    _|
+_|    _|    _|    _|    _|  _|  _|
+  _|  _|  _|      _|    _|    _|_|
+    _|  _|      _|_|_|  _|      _|
+        '),
+        halt.
 
 /* This rule just writes out game instructions. */
 
 instructions :-
         nl,
-        write('Enter commands using standard Prolog syntax.'), nl,
-        write('Available commands are:'), nl,
-        write('start.             -- to start the game.'), nl,
-        write('n.  s.  e.  w.     -- to go in that direction.'), nl,
-        write('take(Object).      -- to pick up an object.'), nl,
-        write('drop(Object).      -- to put down an object.'), nl,
-        write('look.              -- to look around you again.'), nl,
-        write('instructions.      -- to see this message again.'), nl,
-        write('halt.              -- to end the game and quit.'), nl,
-        nl.
-
+        write('|-------------------------------------------------------|'), nl,
+        write('   Enter commands using standard Prolog syntax.'), nl,
+        write('   Available commands are:'), nl,
+        write('   start.             -- to start the game.'), nl,
+        write('   n.  s.  e.  w.     -- to go in that direction.'), nl,
+        write('   take(Object).      -- to pick up an object.'), nl,
+        write('   drop(Object).      -- to put down an object.'), nl,
+        write('   punch(Object).     -- to destroy an object.'), nl,
+        write('   look.              -- to look around you again.'), nl,
+        write('   instructions.      -- to see this message again.'), nl,
+        write('   halt.              -- to end the game and quit.'), nl,
+        write('|-------------------------------------------------------|'), nl.
 
 /* This rule prints out instructions and tells where you are. */
 
@@ -230,4 +450,4 @@ describe(dungeon) :- write('You are in Bowser''s Dungeon.'), nl, nl,
         write('MWAHAHA... WELL MARIO, IT SEEMS YOU HAVE FOUND MY SECRET
 DUNGEON, POSSIBLY IN SEARCH OF YOUR LOST PEACH? WELL YOU''LL
 HAVE TO GO THROUGH ME FIRST!!!'), nl.
-describe(jail) :- write('You are in the jail. You found Peach!'), nl.
+describe(jail) :- write('You are in the jail. You found peach!'), nl.
