@@ -4,6 +4,7 @@ Ethan Hebert and Karina Chang
 CSC-330-002
 Winter 2023
 Project #2 - Super Mario Pro(log)
+Work Division - We wrote this entire code together in person.
 */
 
 :- dynamic i_am_at/1, at/2, holding/1, dial/2.
@@ -151,6 +152,23 @@ drop(_) :-
         write('You aren''t holding it!'),
         nl.
 
+/* These rules define how to view your inventory */
+i :-
+        not(holding(_)),
+        write('You are holding nothing!'),
+        !, nl.
+
+i :- 
+        write('You are holding: '), nl,
+        inventory, !.
+
+inventory :-
+        holding(X),
+        write(X), 
+        nl,
+        fail.
+
+inventory.
 
 /* These rules define how to punch! */
 punch(medicine_cabinet) :-
@@ -314,7 +332,7 @@ e :- go(e).
 
 w :- go(w).
 
-/* CHEAT CODEEEEE */
+/* CHEAT CODEEEEE - jump to dungeon automatically */
 dung :-
         retract(i_am_at(_)),
         assert(i_am_at(dungeon)).
@@ -423,6 +441,7 @@ instructions :-
         write('   n.  s.  e.  w.     -- to go in that direction.'), nl,
         write('   take(Object).      -- to pick up an object.'), nl,
         write('   drop(Object).      -- to put down an object.'), nl,
+        write('   i.                 -- to view your inventory.'), nl,
         write('   punch(Object).     -- to destroy an object.'), nl,
         write('   look.              -- to look around you again.'), nl,
         write('   instructions.      -- to see this message again.'), nl,
